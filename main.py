@@ -26,7 +26,7 @@ def predict_rub_average_salary_hh(vacancy_json):
     return (processed_salaries, int(average_salary))
 
 
-def get_vacancy_json(name):
+def fetch_vacancies_from_hh(name):
     params = {
         "area": 1,
         "text": name,
@@ -46,18 +46,19 @@ def get_vacancy_json(name):
     return response_json
 
 
-def pretty_output(search_name):
-    vacancy_json = get_vacancy_json(search_name)
-    founded_vacancies = vacancy_json['found']
-    vacancies_proceed, average_salary = predict_rub_average_salary_hh(vacancy_json)
-    out_dict = {
-        search_name: {
-            "vacancies_found": founded_vacancies,
-            "vacancies_processed": vacancies_proceed,
-            "average_salary": average_salary
-        }
-    }
-    print(out_dict)
+def pretty_output(vacancy_dict):
+    # vacancy_json = get_vacancy_json(search_name)
+    # founded_vacancies = vacancy_json['found']
+    # vacancies_proceed, average_salary = predict_rub_average_salary_hh(vacancy_json)
+    print(vacancy_dict)
+    # out_dict = {
+    #     search_name: {
+    #         "vacancies_found": founded_vacancies,
+    #         "vacancies_processed": vacancies_proceed,
+    #         "average_salary": average_salary
+    #     }
+    # }
+    # print(out_dict)
 
 
 top_langs_list = ["Программист Python", "Программист Ruby", "Программист Java",
@@ -70,13 +71,14 @@ top_langs_list = ["Программист Python", "Программист Ruby"
 
 def average_salary_from_superjob(vacancy_dict):
     all_salaries = []
-    for item in vacancy_dict.keys():
-        if vacancy_dict[item]['payment_from'] != 0 and vacancy_dict[item]['payment_to'] != 0:
-            predicted_salary = (vacancy_dict[item]['payment_from'] + vacancy_dict[item]['payment_to']) / 2
-        elif vacancy_dict[item]['payment_from'] != 0 and vacancy_dict[item]['payment_to'] == 0:
-            predicted_salary = vacancy_dict[item]['payment_from'] * 1.2
-        elif vacancy_dict[item]['payment_from'] == 0 and vacancy_dict[item]['payment_to'] != 0:
-            predicted_salary = vacancy_dict[item]['payment_to'] * 0.8
+    print(vacancy_dict)
+    for item in vacancy_dict['objects'].keys():
+        if vacancy_dict['objects'][item]['payment_from'] != 0 and vacancy_dict['objects'][item]['payment_to'] != 0:
+            predicted_salary = (vacancy_dict['objects'][item]['payment_from'] + vacancy_dict['objects'][item]['payment_to']) / 2
+        elif vacancy_dict['objects'][item]['payment_from'] != 0 and vacancy_dict['objects'][item]['payment_to'] == 0:
+            predicted_salary = vacancy_dict['objects'][item]['payment_from'] * 1.2
+        elif vacancy_dict['objects'][item]['payment_from'] == 0 and vacancy_dict['objects'][item]['payment_to'] != 0:
+            predicted_salary = vacancy_dict['objects'][item]['payment_to'] * 0.8
         else:
             continue
 
@@ -94,20 +96,26 @@ def fetch_vacancies_from_superjob(name):
     }
     params = {
         "keyword": name,
-        "town": 4
+        "town": 4,
     }
 
     response = requests.get(url, headers=headers, params=params)
     response_json = response.json()
-    print(response_json)
-
-    vacancies_json = {}
+    vacancies_json = {
+        'objects': {},
+        'found': 0
+    }
+    vacancies_json['found'] = len(response_json['objects'])
     for item in response_json['objects']:
         if item['currency'] == 'rub':
-            vacancies_json[item['profession']] = {"payment_from": item['payment_from'], "payment_to": item['payment_to'], "town": "Москва"}
+            vacancies_json['objects'][item['profession']] = {"payment_from": item['payment_from'], "payment_to": item['payment_to']}
+    # vacancies_json['found'] = len(response_json['objects'])
     return vacancies_json
 
 # print(fetch_vacancies_from_superjob("Программист Python"))
 
-vacancy_dict = fetch_vacancies_from_superjob("Программист Python")
-print(average_salary_from_superjob(vacancy_dict))
+superjob_vacancy_dict = fetch_vacancies_from_superjob("Программист Python")
+# hh_vacancy_json = get_vacancy_json("Программист Python")
+
+# pretty_output(average_salary_from_superjob(vacancy_dict))
+print(average_salary_from_superjob(superjob_vacancy_dict))
