@@ -8,7 +8,7 @@ vacancies_names = ["Программист Python", "Программист Ruby
                    "Программист C++", "Программист PHP", "Программист C#"]
 
 
-def predict_rub_average_salary(vacancy_json):
+def predict_rub_average_salary_hh(vacancy_json):
     all_salaries = []
     for item in vacancy_json['items']:
         if item is not None and item['salary'] is not None and item['salary']['currency'] == 'RUR':
@@ -49,7 +49,7 @@ def get_vacancy_json(name):
 def pretty_output(search_name):
     vacancy_json = get_vacancy_json(search_name)
     founded_vacancies = vacancy_json['found']
-    vacancies_proceed, average_salary = predict_rub_average_salary(vacancy_json)
+    vacancies_proceed, average_salary = predict_rub_average_salary_hh(vacancy_json)
     out_dict = {
         search_name: {
             "vacancies_found": founded_vacancies,
@@ -64,4 +64,23 @@ top_langs_list = ["Программист Python", "Программист Ruby"
                    "Программист Swift", "Программист Javascript", "Программист Go",
                    "Программист C++", "Программист PHP", "Программист C#"]
 
-pretty_output("Программист Python")
+# pretty_output("Программист Python")
+# for lang in top_langs_list:
+#     pretty_output(lang)
+
+
+def fetch_vacancies_from_superjob(name):
+    secret_key = "v3.r.128977974.a1abb3a24d8881daebd4b8268c0bb09839c95ca9.6c1f43473acc583d623876c00b4f6f535ede39dd"
+    url = "https://api.superjob.ru/2.0/vacancies/"
+    headers = {
+        "X-Api-App-Id": secret_key
+    }
+    params = {
+        "keyword": name,
+        "town": 4
+    }
+
+    response = requests.get(url, headers=headers, params=params)
+    print(response.json())
+
+fetch_vacancies_from_superjob("Программист Python")
