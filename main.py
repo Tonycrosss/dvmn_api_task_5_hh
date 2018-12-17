@@ -12,7 +12,7 @@ def fetch_json_from_hh(name):
     response = requests.get(url, params=params)
     response_json = response.json()
     pages = response_json['pages']
-    for page in range(2, 3):
+    for page in range(2, pages):
         print(f'Loading  {name} page : {page}....')
         params["page"] = page
         response = requests.get(url, params=params)
@@ -107,6 +107,7 @@ def main():
     table_instance_superjob = AsciiTable(table_data_superjob, superjob_title)
     print(table_instance_hh.table)
     print(table_instance_superjob.table)
+
 
 if __name__ == '__main__':
     main()
