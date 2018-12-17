@@ -68,6 +68,23 @@ top_langs_list = ["Программист Python", "Программист Ruby"
 # for lang in top_langs_list:
 #     pretty_output(lang)
 
+def average_salary_from_superjob(vacancy_dict):
+    all_salaries = []
+    for item in vacancy_dict.keys():
+        if vacancy_dict[item]['payment_from'] != 0 and vacancy_dict[item]['payment_to'] != 0:
+            predicted_salary = (vacancy_dict[item]['payment_from'] + vacancy_dict[item]['payment_to']) / 2
+        elif vacancy_dict[item]['payment_from'] != 0 and vacancy_dict[item]['payment_to'] == 0:
+            predicted_salary = vacancy_dict[item]['payment_from'] * 1.2
+        elif vacancy_dict[item]['payment_from'] == 0 and vacancy_dict[item]['payment_to'] != 0:
+            predicted_salary = vacancy_dict[item]['payment_to'] * 0.8
+        else:
+            continue
+
+        all_salaries.append(predicted_salary)
+    processed_salaries = len(all_salaries)
+    average_salary = sum(all_salaries) // len(all_salaries)
+    return (processed_salaries, int(average_salary))
+
 
 def fetch_vacancies_from_superjob(name):
     secret_key = "v3.r.128977974.a1abb3a24d8881daebd4b8268c0bb09839c95ca9.6c1f43473acc583d623876c00b4f6f535ede39dd"
@@ -81,6 +98,16 @@ def fetch_vacancies_from_superjob(name):
     }
 
     response = requests.get(url, headers=headers, params=params)
-    print(response.json())
+    response_json = response.json()
+    print(response_json)
 
-fetch_vacancies_from_superjob("Программист Python")
+    vacancies_json = {}
+    for item in response_json['objects']:
+        if item['currency'] == 'rub':
+            vacancies_json[item['profession']] = {"payment_from": item['payment_from'], "payment_to": item['payment_to'], "town": "Москва"}
+    return vacancies_json
+
+# print(fetch_vacancies_from_superjob("Программист Python"))
+
+vacancy_dict = fetch_vacancies_from_superjob("Программист Python")
+print(average_salary_from_superjob(vacancy_dict))
