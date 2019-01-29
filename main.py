@@ -28,7 +28,6 @@ def fetch_json_from_hh(name):
         response = requests.get(url, params=params)
         for item in response.json()['items']:
             response_json['items'].append(item)
-            logging.info(f'Loaded!')
     return response_json
 
 
@@ -120,8 +119,8 @@ def main():
     superjob_title = 'SJ Moscow'
     table_instance_hh = AsciiTable(table_data_hh, hh_title)
     table_instance_superjob = AsciiTable(table_data_superjob, superjob_title)
-    logging.info(table_instance_hh.table)
-    logging.info(table_instance_superjob.table)
+    print(table_instance_hh.table)
+    print(table_instance_superjob.table)
 
 
 if __name__ == '__main__':
