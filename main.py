@@ -86,13 +86,13 @@ def average_salary_from_site(vacancy_data, site):
         return processed_salaries, int(average_salary)
 
 
-def parse_json_hh_to_table(json):
+def collect_hh_stat(json):
     founded_vacancies = json['found']
     processed_salaries_hh, hh_av_salary = average_salary_from_site(json, site='hh')
     return (founded_vacancies, processed_salaries_hh, hh_av_salary)
 
 
-def parse_json_superjob_to_table(json):
+def collect_superjob_stat(json):
     founded_vacancies = json['total']
     processed_salaries_superjob, superjob_av_salary = average_salary_from_site(json, site='superjob')
     return (founded_vacancies, processed_salaries_superjob, superjob_av_salary)
@@ -113,8 +113,8 @@ def main():
     for lang in top_langs_list:
         hh_json = fetch_json_from_hh(lang)
         superjob_json = fetch_json_from_superjob(lang)
-        table_data_hh = table_data_hh + ((lang, *parse_json_hh_to_table(hh_json)), )
-        table_data_superjob = table_data_superjob + ((lang, *parse_json_superjob_to_table(superjob_json)),)
+        table_data_hh = table_data_hh + ((lang, *collect_hh_stat(hh_json)), )
+        table_data_superjob = table_data_superjob + ((lang, *collect_superjob_stat(superjob_json)),)
     hh_title = 'HH Moscow'
     superjob_title = 'SJ Moscow'
     table_instance_hh = AsciiTable(table_data_hh, hh_title)
