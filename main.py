@@ -46,55 +46,55 @@ def fetch_json_from_superjob(name):
     return response_json
 
 
-def average_salary_from_hh(vacancy_json):
-    all_salaries = []
-    for item in vacancy_json['items']:
-        if item is not None and item['salary'] is not None and item['salary']['currency'] == 'RUR':
-            salary = item['salary']
-            if salary['from'] is not None and salary['to'] is not None:
-                predicted_salary = (salary['from'] + salary['to']) / 2
-            elif salary['from'] is not None and salary['to'] is None:
-                predicted_salary = salary['from'] * 1.2
-            elif salary['from'] is None and salary['to'] is not None:
-                predicted_salary = salary['to'] * 0.8
-            else:
-                continue
-
-            all_salaries.append(predicted_salary)
-    processed_salaries = len(all_salaries)
-    average_salary = sum(all_salaries) // len(all_salaries)
-    return (processed_salaries, int(average_salary))
-
-
-def average_salary_from_superjob(vacancy_dict):
-    all_salaries = []
-    for item in vacancy_dict['objects']:
-        if item['payment_from'] != 0 and item['payment_to'] != 0:
-            predicted_salary = (item['payment_from'] + item['payment_to']) / 2
-        elif item['payment_from'] != 0 and item['payment_to'] == 0:
-            predicted_salary = item['payment_from'] * 1.2
-        elif item['payment_from'] == 0 and item['payment_to'] != 0:
-            predicted_salary = item['payment_to'] * 0.8
-        else:
-            continue
-        all_salaries.append(predicted_salary)
-    if all_salaries != []:
+def average_salary_from_site(vacancy_data, site):
+    if site == 'hh':
+        all_salaries = []
+        for item in vacancy_data['items']:
+            if item is not None and item['salary'] is not None and item['salary']['currency'] == 'RUR':
+                salary = item['salary']
+                if salary['from'] is not None and salary['to'] is not None:
+                    predicted_salary = (salary['from'] + salary['to']) / 2
+                elif salary['from'] is not None and salary['to'] is None:
+                    predicted_salary = salary['from'] * 1.2
+                elif salary['from'] is None and salary['to'] is not None:
+                    predicted_salary = salary['to'] * 0.8
+                else:
+                    continue
+                all_salaries.append(predicted_salary)
         processed_salaries = len(all_salaries)
         average_salary = sum(all_salaries) // len(all_salaries)
-    else:
-        processed_salaries, average_salary = (0, 0)
-    return processed_salaries, int(average_salary)
+        return (processed_salaries, int(average_salary))
+
+    elif site == 'superjob':
+        all_salaries = []
+        for item in vacancy_data['objects']:
+            if item['payment_from'] != 0 and item['payment_to'] != 0:
+                predicted_salary = (item['payment_from'] + item[
+                    'payment_to']) / 2
+            elif item['payment_from'] != 0 and item['payment_to'] == 0:
+                predicted_salary = item['payment_from'] * 1.2
+            elif item['payment_from'] == 0 and item['payment_to'] != 0:
+                predicted_salary = item['payment_to'] * 0.8
+            else:
+                continue
+            all_salaries.append(predicted_salary)
+        if all_salaries != []:
+            processed_salaries = len(all_salaries)
+            average_salary = sum(all_salaries) // len(all_salaries)
+        else:
+            processed_salaries, average_salary = (0, 0)
+        return processed_salaries, int(average_salary)
 
 
 def parse_json_hh_to_table(json):
     founded_vacancies = json['found']
-    processed_salaries_hh, hh_av_salary = average_salary_from_hh(json)
+    processed_salaries_hh, hh_av_salary = average_salary_from_site(json, site='hh')
     return (founded_vacancies, processed_salaries_hh, hh_av_salary)
 
 
 def parse_json_superjob_to_table(json):
     founded_vacancies = json['total']
-    processed_salaries_superjob, superjob_av_salary = average_salary_from_superjob(json)
+    processed_salaries_superjob, superjob_av_salary = average_salary_from_site(json, site='superjob')
     return (founded_vacancies, processed_salaries_superjob, superjob_av_salary)
 
 
