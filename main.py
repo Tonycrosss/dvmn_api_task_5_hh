@@ -1,5 +1,15 @@
 import requests
 from terminaltables import AsciiTable
+import logging
+import argparse
+
+
+VERBOSITY_TO_LOGGING_LEVELS = {
+    0: logging.WARNING,
+    1: logging.INFO,
+    2: logging.DEBUG,
+}
+
 
 def fetch_json_from_hh(name):
     url = "https://api.hh.ru/vacancies"
@@ -13,12 +23,12 @@ def fetch_json_from_hh(name):
     response_json = response.json()
     pages = response_json['pages']
     for page in range(2, pages):
-        print(f'Loading  {name} page : {page}....')
+        logging.info(f'Loading  {name} page : {page}....')
         params["page"] = page
         response = requests.get(url, params=params)
         for item in response.json()['items']:
             response_json['items'].append(item)
-        print(f'Loaded!')
+            logging.info(f'Loaded!')
     return response_json
 
 
@@ -90,6 +100,11 @@ def parse_json_superjob_to_table(json):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--verbose', '-v', action='count', default=1)
+    args = parser.parse_args()
+    logging_level = VERBOSITY_TO_LOGGING_LEVELS[args.verbose]
+    logging.basicConfig(level=logging_level)
     top_langs_list = ["Программист Python", "Программист Ruby",
                       "Программист Java",
                       "Программист Swift", "Программист Javascript",
@@ -105,8 +120,8 @@ def main():
     superjob_title = 'SJ Moscow'
     table_instance_hh = AsciiTable(table_data_hh, hh_title)
     table_instance_superjob = AsciiTable(table_data_superjob, superjob_title)
-    print(table_instance_hh.table)
-    print(table_instance_superjob.table)
+    logging.info(table_instance_hh.table)
+    logging.info(table_instance_superjob.table)
 
 
 if __name__ == '__main__':
