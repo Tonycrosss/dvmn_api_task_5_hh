@@ -3,7 +3,6 @@ from terminaltables import AsciiTable
 import logging
 import argparse
 
-
 VERBOSITY_TO_LOGGING_LEVELS = {
     0: logging.WARNING,
     1: logging.INFO,
@@ -11,19 +10,61 @@ VERBOSITY_TO_LOGGING_LEVELS = {
 }
 
 
-def fetch_json_from_hh(name):
+def get_predict_salary(sallaries):
+    predicted_salary_list = []
+    for salary in sallaries:
+        if salary['from'] is not None and salary['to'] is not None:
+            predicted_salary = (salary['from'] + salary['to']) / 2
+        elif salary['from'] is not None and salary['to'] is None:
+            predicted_salary = salary['from'] * 1.2
+        elif salary['from'] is None and salary['to'] is not None:
+            predicted_salary = salary['to'] * 0.8
+        else:
+            continue
+        predicted_salary_list.append(predicted_salary)
+    if predicted_salary_list != []:
+        processed_salaries = len(predicted_salary_list)
+        average_salary = sum(predicted_salary_list) // len(
+            predicted_salary_list)
+    else:
+        processed_salaries, average_salary = (0, 0)
+    return processed_salaries, average_salary
+
+
+def get_predict_rub_salary_hh(vacancy):
+    all_salaries = []
+    for item in vacancy['items']:
+        if item is not None and item['salary'] is not None and \
+                item['salary']['currency'] == 'RUR':
+            salary = item['salary']
+            all_salaries.append(salary)
+    return all_salaries
+
+
+def get_predict_rub_salary_sj(vacancy):
+    all_salaries = []
+    for item in vacancy['objects']:
+        # унифицируем ключи
+        item["from"] = item.pop("payment_from")
+        item["to"] = item.pop("payment_to")
+        all_salaries.append(item)
+    return all_salaries
+
+
+def get_salaries_hh(language, region, period):
     url = "https://api.hh.ru/vacancies"
     params = {
         "area": 1,
-        "text": name,
-        "period": 30,
-        "page": 1
+        "text": language,
+        "period": period,
+        "page": 1,
+        "areas": region
     }
     response = requests.get(url, params=params)
     response_json = response.json()
     pages = response_json['pages']
     for page in range(2, pages):
-        logging.info(f'Loading  {name} page : {page}....')
+        logging.info(f'Loading  {language} page : {page}....')
         params["page"] = page
         response = requests.get(url, params=params)
         for item in response.json()['items']:
@@ -31,71 +72,31 @@ def fetch_json_from_hh(name):
     return response_json
 
 
-def fetch_json_from_superjob(name):
+def get_salaries_sj(language, region, period=None):
     secret_key = "v3.r.128977974.a1abb3a24d8881daebd4b8268c0bb09839c95ca9.6c1f43473acc583d623876c00b4f6f535ede39dd"
     url = "https://api.superjob.ru/2.0/vacancies/"
     headers = {
         "X-Api-App-Id": secret_key
     }
     params = {
-        "keyword": name,
-        "town": 4,
+        "keyword": language,
+        "town": region,
     }
     response = requests.get(url, headers=headers, params=params)
     response_json = response.json()
     return response_json
 
 
-def average_salary_from_site(vacancy_data, site):
-    if site == 'hh':
-        all_salaries = []
-        for item in vacancy_data['items']:
-            if item is not None and item['salary'] is not None and item['salary']['currency'] == 'RUR':
-                salary = item['salary']
-                if salary['from'] is not None and salary['to'] is not None:
-                    predicted_salary = (salary['from'] + salary['to']) / 2
-                elif salary['from'] is not None and salary['to'] is None:
-                    predicted_salary = salary['from'] * 1.2
-                elif salary['from'] is None and salary['to'] is not None:
-                    predicted_salary = salary['to'] * 0.8
-                else:
-                    continue
-                all_salaries.append(predicted_salary)
-        processed_salaries = len(all_salaries)
-        average_salary = sum(all_salaries) // len(all_salaries)
-        return (processed_salaries, int(average_salary))
-
-    elif site == 'superjob':
-        all_salaries = []
-        for item in vacancy_data['objects']:
-            if item['payment_from'] != 0 and item['payment_to'] != 0:
-                predicted_salary = (item['payment_from'] + item[
-                    'payment_to']) / 2
-            elif item['payment_from'] != 0 and item['payment_to'] == 0:
-                predicted_salary = item['payment_from'] * 1.2
-            elif item['payment_from'] == 0 and item['payment_to'] != 0:
-                predicted_salary = item['payment_to'] * 0.8
-            else:
-                continue
-            all_salaries.append(predicted_salary)
-        if all_salaries != []:
-            processed_salaries = len(all_salaries)
-            average_salary = sum(all_salaries) // len(all_salaries)
-        else:
-            processed_salaries, average_salary = (0, 0)
-        return processed_salaries, int(average_salary)
-
-
 def collect_hh_stat(json):
-    founded_vacancies = json['found']
-    processed_salaries_hh, hh_av_salary = average_salary_from_site(json, site='hh')
-    return (founded_vacancies, processed_salaries_hh, hh_av_salary)
+    founded_vacancies = len(json)
+    processed_salaries_hh, hh_av_salary = get_predict_salary(json)
+    return founded_vacancies, processed_salaries_hh, hh_av_salary
 
 
 def collect_superjob_stat(json):
-    founded_vacancies = json['total']
-    processed_salaries_superjob, superjob_av_salary = average_salary_from_site(json, site='superjob')
-    return (founded_vacancies, processed_salaries_superjob, superjob_av_salary)
+    founded_vacancies = len(json)
+    processed_salaries_superjob, superjob_av_salary = get_predict_salary(json)
+    return founded_vacancies, processed_salaries_superjob, superjob_av_salary
 
 
 def main():
@@ -109,12 +110,19 @@ def main():
                       "Программист Swift", "Программист Javascript",
                       "Программист Go",
                       "Программист C++", "Программист PHP", "Программист C#"]
-    table_data_hh = table_data_superjob = (('Наименование вакансии', 'Всего найдено вакансий', 'Обработано вакансий', 'Средняя зарплата'),)
+    table_data_hh = table_data_superjob = (('Наименование вакансии',
+                                            'Всего найдено вакансий',
+                                            'Обработано вакансий',
+                                            'Средняя зарплата'),)
     for lang in top_langs_list:
-        hh_json = fetch_json_from_hh(lang)
-        superjob_json = fetch_json_from_superjob(lang)
-        table_data_hh = table_data_hh + ((lang, *collect_hh_stat(hh_json)), )
-        table_data_superjob = table_data_superjob + ((lang, *collect_superjob_stat(superjob_json)),)
+        hh_json = get_salaries_hh(lang, 113, 30)
+        hh_sallaries_list = get_predict_rub_salary_hh(hh_json)
+        sj_json = get_salaries_sj(lang, 4)
+        sj_sallaries_list = get_predict_rub_salary_sj(sj_json)
+        table_data_hh = table_data_hh + \
+                        ((lang, *collect_hh_stat(hh_sallaries_list)),)
+        table_data_superjob = table_data_superjob + ((lang, *collect_superjob_stat(sj_sallaries_list)),)
+
     hh_title = 'HH Moscow'
     superjob_title = 'SJ Moscow'
     table_instance_hh = AsciiTable(table_data_hh, hh_title)
