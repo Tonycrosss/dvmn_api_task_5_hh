@@ -3,7 +3,9 @@ from terminaltables import AsciiTable
 import logging
 import argparse
 
-
+moscow_region = 113
+month_period = 30
+moscow_region_sj = 4
 VERBOSITY_TO_LOGGING_LEVELS = {
     0: logging.WARNING,
     1: logging.INFO,
@@ -46,12 +48,11 @@ def get_vacancies_hh(language, region, period=None):
     founded_vanacies = response_json['found']
     vacancies = response_json['items']
     pages = response_json['pages']
-    for page in range(2, pages):
+    for page in range(2, 3):
         logging.info(f'Loading  {language} page : {page}....')
         params["page"] = page
         sallaries = requests.get(url, params=params)
-        for item in sallaries.json()['items']:
-            vacancies.append(item)
+        vacancies.extend(sallaries.json()['items'])
     return founded_vanacies, vacancies
 
 
@@ -74,11 +75,11 @@ def get_vacancies_sj(language, region, period=None):
 
 def get_only_rub_av_salary_hh(vacancies):
     all_salaries = []
+    # Не совсем понял в это ли я должен был превратить предыдущий вариант
+    # Если нет, то можно более подробное замечание?
     for item in vacancies:
-        if item is not None and item['salary'] is not None and \
-                item['salary']['currency'] == 'RUR':
-            salary = item['salary']
-            all_salaries.append(salary)
+        if item and item['salary'] and item['salary']['currency'] == 'RUR':
+            all_salaries.append(item['salary'])
     processed_salaries, average_salary = get_predict_salary(all_salaries)
     return processed_salaries, average_salary
 
@@ -109,15 +110,14 @@ def main():
                                             'Всего найдено вакансий',
                                             'Обработано вакансий',
                                             'Средняя зарплата'),)
+
     for language in top_lang_list:
-        hh_founded_vacancies_quantity, hh_vacancies = get_vacancies_hh(language, 113, 30)
+        hh_founded_vacancies_quantity, hh_vacancies = get_vacancies_hh(language, moscow_region, month_period)
         hh_processed_salaries, hh_average_salary = get_only_rub_av_salary_hh(hh_vacancies)
         table_data_hh = table_data_hh + \
                         ((language, hh_founded_vacancies_quantity, hh_processed_salaries, hh_average_salary),)
 
-
-
-        sj_founded_vacancies_quantity, sj_vacancies = get_vacancies_sj(language, 4)
+        sj_founded_vacancies_quantity, sj_vacancies = get_vacancies_sj(language, moscow_region_sj)
         sj_processed_salaries, sj_average_salary = get_only_rub_av_salary_sj(
             sj_vacancies)
         table_data_sj = table_data_sj + \
