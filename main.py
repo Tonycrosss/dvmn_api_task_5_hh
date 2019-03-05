@@ -48,7 +48,7 @@ def get_vacancies_hh(language, region, period=None):
     founded_vanacies = response_json['found']
     vacancies = response_json['items']
     pages = response_json['pages']
-    for page in range(2, 3):
+    for page in range(2, pages):
         logging.info(f'Loading  {language} page : {page}....')
         params["page"] = page
         sallaries = requests.get(url, params=params)
