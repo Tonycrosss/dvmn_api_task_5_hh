@@ -3,9 +3,9 @@ from terminaltables import AsciiTable
 import logging
 import argparse
 
-moscow_region = 113
-month_period = 30
-moscow_region_sj = 4
+MOSCOW_REGION = 113
+MONTH_PERIOD = 30
+MOSCOW_REGION_SJ = 4
 VERBOSITY_TO_LOGGING_LEVELS = {
     0: logging.WARNING,
     1: logging.INFO,
@@ -75,11 +75,12 @@ def get_vacancies_sj(language, region, period=None):
 
 def get_only_rub_av_salary_hh(vacancies):
     all_salaries = []
-    # Не совсем понял в это ли я должен был превратить предыдущий вариант
-    # Если нет, то можно более подробное замечание?
     for item in vacancies:
-        if item and item['salary'] and item['salary']['currency'] == 'RUR':
-            all_salaries.append(item['salary'])
+        if not item or not item['salary']:
+            continue
+        if item['salary']['currency'] != 'RUR':
+            continue
+        all_salaries.append(item['salary'])
     processed_salaries, average_salary = get_predict_salary(all_salaries)
     return processed_salaries, average_salary
 
@@ -112,12 +113,12 @@ def main():
                                             'Средняя зарплата'),)
 
     for language in top_lang_list:
-        hh_founded_vacancies_quantity, hh_vacancies = get_vacancies_hh(language, moscow_region, month_period)
+        hh_founded_vacancies_quantity, hh_vacancies = get_vacancies_hh(language, MOSCOW_REGION, MONTH_PERIOD)
         hh_processed_salaries, hh_average_salary = get_only_rub_av_salary_hh(hh_vacancies)
         table_data_hh = table_data_hh + \
                         ((language, hh_founded_vacancies_quantity, hh_processed_salaries, hh_average_salary),)
 
-        sj_founded_vacancies_quantity, sj_vacancies = get_vacancies_sj(language, moscow_region_sj)
+        sj_founded_vacancies_quantity, sj_vacancies = get_vacancies_sj(language, MOSCOW_REGION_SJ)
         sj_processed_salaries, sj_average_salary = get_only_rub_av_salary_sj(
             sj_vacancies)
         table_data_sj = table_data_sj + \
