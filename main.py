@@ -36,18 +36,18 @@ def get_predict_salary(sallaries):
 def get_vacancies_hh(language, region, period=None):
     url = "https://api.hh.ru/vacancies"
     params = {
-        "area": 1,
+        "area": 1261,
         "text": language,
         "period": period,
-        "page": 1,
-        "areas": region
+        "page": 0,
+        # "areas": 1261
     }
     response = requests.get(url, params=params)
     response_json = response.json()
     founded_vanacies = response_json['found']
     vacancies = response_json['items']
     pages = response_json['pages']
-    for page in range(2, pages):
+    for page in range(1, pages):
         logging.info(f'Loading  {language} page : {page}....')
         params["page"] = page
         sallaries = requests.get(url, params=params)
@@ -101,22 +101,18 @@ def main():
     args = parser.parse_args()
     logging_level = VERBOSITY_TO_LOGGING_LEVELS[args.verbose]
     logging.basicConfig(level=logging_level)
-    top_lang_list = ["Программист Python", "Программист Ruby",
-                      "Программист Java",
-                      "Программист Swift", "Программист Javascript",
-                      "Программист Go",
-                      "Программист C++", "Программист PHP", "Программист C#"]
+    # top_lang_list = ["Программист Python", "Программист Ruby",
+    #                   "Программист Java",
+    #                   "Программист Swift", "Программист Javascript",
+    #                   "Программист Go",
+    #                   "Программист C++", "Программист PHP", "Программист C#"]
+    top_lang_list = ["Разработчик python"]
 
     for language in top_lang_list:
         hh_founded_vacancies_quantity, hh_vacancies = get_vacancies_hh(language, MOSCOW_REGION, MONTH_PERIOD)
+        for vacancy in hh_vacancies:
+            print(vacancy)
         hh_processed_salaries, hh_average_salary = get_only_rub_av_salary_hh(hh_vacancies)
-        table_data_hh = table_data_hh + \
-                        ((language, hh_founded_vacancies_quantity, hh_processed_salaries, hh_average_salary),)
-
-        sj_founded_vacancies_quantity, sj_vacancies = get_vacancies_sj(language, MOSCOW_REGION_SJ)
-        sj_processed_salaries, sj_average_salary = get_only_rub_av_salary_sj(
-            sj_vacancies)
-
 
 if __name__ == '__main__':
     main()
