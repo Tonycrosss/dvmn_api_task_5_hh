@@ -1,5 +1,4 @@
 import requests
-from terminaltables import AsciiTable
 import logging
 import argparse
 
@@ -107,10 +106,6 @@ def main():
                       "Программист Swift", "Программист Javascript",
                       "Программист Go",
                       "Программист C++", "Программист PHP", "Программист C#"]
-    table_data_hh = table_data_sj = (('Наименование вакансии',
-                                            'Всего найдено вакансий',
-                                            'Обработано вакансий',
-                                            'Средняя зарплата'),)
 
     for language in top_lang_list:
         hh_founded_vacancies_quantity, hh_vacancies = get_vacancies_hh(language, MOSCOW_REGION, MONTH_PERIOD)
@@ -121,15 +116,6 @@ def main():
         sj_founded_vacancies_quantity, sj_vacancies = get_vacancies_sj(language, MOSCOW_REGION_SJ)
         sj_processed_salaries, sj_average_salary = get_only_rub_av_salary_sj(
             sj_vacancies)
-        table_data_sj = table_data_sj + \
-                        ((language, sj_founded_vacancies_quantity,
-                          sj_processed_salaries, sj_average_salary),)
-    hh_title = 'HH Moscow'
-    table_instance_hh = AsciiTable(table_data_hh, hh_title)
-    sj_title = 'SJ Moscow'
-    table_instance_sj = AsciiTable(table_data_sj, sj_title)
-    print(table_instance_hh.table)
-    print(table_instance_sj.table)
 
 
 if __name__ == '__main__':
