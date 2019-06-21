@@ -1,8 +1,13 @@
 import requests
 import logging
 import argparse
+import openpyxl
+
+
+
 
 MOSCOW_REGION = 113
+SVERDL_REGION = 1261
 MONTH_PERIOD = 30
 MOSCOW_REGION_SJ = 4
 VERBOSITY_TO_LOGGING_LEVELS = {
@@ -33,10 +38,10 @@ def get_predict_salary(sallaries):
     return processed_salaries, average_salary
 
 
-def get_vacancies_hh(language, region, period=None):
+def get_vacancies_hh_keywords(language, region, period=None):
     url = "https://api.hh.ru/vacancies"
     params = {
-        "area": 1261,
+        "area": region,
         "text": language,
         "period": period,
         "page": 0,
@@ -106,13 +111,33 @@ def main():
     #                   "Программист Swift", "Программист Javascript",
     #                   "Программист Go",
     #                   "Программист C++", "Программист PHP", "Программист C#"]
-    top_lang_list = ["Разработчик python"]
+    top_lang_list = ["Разработчик python junior"]
 
+    wb = openpyxl.load_workbook(filename="./test.xlsx")
+    sheet_msk = wb['vacancies_msk']
+    sheet_sverdl = wb['vacancies_sverdl']
+
+
+    # сначала ищем по ключевым словам мск
+# {'id': '30264584', 'premium': False, 'name': 'DevOps инженер', 'department': None, 'has_test': False, 'response_letter_required': False, 'area': {'id': '3', 'name': 'Екатеринбург', 'url': 'https://api.hh.ru/areas/3'}, 'salary': None, 'type': {'id': 'open', 'name': 'Открытая'}, 'address': {'city': 'Екатеринбург', 'street': None, 'building': None, 'description': None, 'lat': 56.838607, 'lng': 60.605514, 'raw': None, 'metro': {'station_name': 'Площадь 1905 года', 'line_name': 'Север-Юг', 'station_id': '48.266', 'line_id': '48', 'lat': 56.837982, 'lng': 60.59734}, 'metro_stations': [{'station_name': 'Площадь 1905 года', 'line_name': 'Север-Юг', 'station_id': '48.266', 'line_id': '48', 'lat': 56.837982, 'lng': 60.59734}], 'id': '800454'}, 'response_url': None, 'sort_point_distance': None, 'employer': {'id': '78638', 'name': 'Тинькофф', 'url': 'https://api.hh.ru/employers/78638', 'alternate_url': 'https://hh.ru/employer/78638', 'logo_urls': {'240': 'https://hhcdn.ru/employer-logo/2848221.png', '90': 'https://hhcdn.ru/employer-logo/2848220.png', 'original': 'https://hhcdn.ru/employer-logo-original/601766.png'}, 'vacancies_url': 'https://api.hh.ru/vacancies?employer_id=78638', 'trusted': True}, 'published_at': '2019-06-03T11:17:55+0300', 'created_at': '2019-06-03T11:17:55+0300', 'archived': False, 'apply_alternate_url': 'https://hh.ru/applicant/vacancy_response?vacancyId=30264584', 'insider_interview': None, 'url': 'https://api.hh.ru/vacancies/30264584?host=hh.ru', 'alternate_url': 'https://hh.ru/vacancy/30264584', 'relations': [], 'snippet': {'requirement': 'Способности автоматизировать рутинные процессы на <highlighttext>Python</highlighttext>, bash. Отличное знание сети. Возможность рассказать про модель OSI, умение диагностировать и решать сложные...', 'responsibility': 'Поддерживать команды <highlighttext>Python</highlighttext> <highlighttext>разработчиков</highlighttext> в вопросах инфраструктурной оптимизации и сопровождения. Развертывать и поддерживать CI/CD на основе TeamCity и Jenkins. '}, 'contacts': None}
     for language in top_lang_list:
-        hh_founded_vacancies_quantity, hh_vacancies = get_vacancies_hh(language, MOSCOW_REGION, MONTH_PERIOD)
-        for vacancy in hh_vacancies:
+        hh_founded_vacancies_quantity, msk_hh_vacancies = get_vacancies_hh_keywords(language, MOSCOW_REGION, MONTH_PERIOD)
+
+        r = 1
+        for vacancy in msk_hh_vacancies:
             print(vacancy)
-        hh_processed_salaries, hh_average_salary = get_only_rub_av_salary_hh(hh_vacancies)
+            sheet_msk.cell(row=r, column=1, value=" ".join(language.split()[0:2]))
+            sheet_msk.cell(row=r, column=2, value=language.split()[-1])
+            if vacancy['salary'] is not None:
+                sheet_msk.cell(row=r, column=3, value=vacancy['salary']['from'])
+                sheet_msk.cell(row=r, column=4, value=vacancy['salary']['to'])
+            sheet_msk.cell(row=r, column=5, value=vacancy['name'])
+
+            r += 1
+
+    wb.save("./test.xlsx")
+
+
 
 if __name__ == '__main__':
     main()
