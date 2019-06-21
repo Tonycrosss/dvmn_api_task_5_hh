@@ -52,7 +52,7 @@ def get_vacancies_hh_keywords(language, region, period=None):
     founded_vanacies = response_json['found']
     vacancies = response_json['items']
     pages = response_json['pages']
-    for page in range(1, pages):
+    for page in range(0, pages):
         logging.info(f'Loading  {language} page : {page}....')
         params["page"] = page
         sallaries = requests.get(url, params=params)
@@ -111,19 +111,51 @@ def main():
     #                   "Программист Swift", "Программист Javascript",
     #                   "Программист Go",
     #                   "Программист C++", "Программист PHP", "Программист C#"]
-    top_lang_list = ["Разработчик python junior"]
-
+    top_lang_list = ["Программист Python junior",
+                     "Программист Ruby junior",
+                     "Программист Java junior",
+                     "Программист Swift junior",
+                     "Программист Javascript junior",
+                     "Программист Go junior",
+                     "Программист C++ junior",
+                     "Программист PHP junior",
+                     "Программист C# junior",
+                     "Тестировщик ПО junior",
+                     "Системный аналитик junior",
+                     "Программист Python middle",
+                     "Программист Ruby middle",
+                     "Программист Java middle",
+                     "Программист Swift middle",
+                     "Программист Javascript middle",
+                     "Программист Go middle",
+                     "Программист C++ middle",
+                     "Программист PHP middle",
+                     "Программист C# middle",
+                     "Тестировщик ПО middle",
+                     "Системный аналитик middle",
+                     "Программист Python senior",
+                     "Программист Ruby senior",
+                     "Программист Java senior",
+                     "Программист Swift senior",
+                     "Программист Javascript senior",
+                     "Программист Go senior",
+                     "Программист C++ senior",
+                     "Программист PHP senior",
+                     "Программист C# senior",
+                     "Тестировщик ПО senior",
+                     "Системный аналитик senior",
+                     ]
     wb = openpyxl.load_workbook(filename="./test.xlsx")
     sheet_msk = wb['vacancies_msk']
-    sheet_sverdl = wb['vacancies_sverdl']
 
 
+    r = 1
     # сначала ищем по ключевым словам мск
 # {'id': '30264584', 'premium': False, 'name': 'DevOps инженер', 'department': None, 'has_test': False, 'response_letter_required': False, 'area': {'id': '3', 'name': 'Екатеринбург', 'url': 'https://api.hh.ru/areas/3'}, 'salary': None, 'type': {'id': 'open', 'name': 'Открытая'}, 'address': {'city': 'Екатеринбург', 'street': None, 'building': None, 'description': None, 'lat': 56.838607, 'lng': 60.605514, 'raw': None, 'metro': {'station_name': 'Площадь 1905 года', 'line_name': 'Север-Юг', 'station_id': '48.266', 'line_id': '48', 'lat': 56.837982, 'lng': 60.59734}, 'metro_stations': [{'station_name': 'Площадь 1905 года', 'line_name': 'Север-Юг', 'station_id': '48.266', 'line_id': '48', 'lat': 56.837982, 'lng': 60.59734}], 'id': '800454'}, 'response_url': None, 'sort_point_distance': None, 'employer': {'id': '78638', 'name': 'Тинькофф', 'url': 'https://api.hh.ru/employers/78638', 'alternate_url': 'https://hh.ru/employer/78638', 'logo_urls': {'240': 'https://hhcdn.ru/employer-logo/2848221.png', '90': 'https://hhcdn.ru/employer-logo/2848220.png', 'original': 'https://hhcdn.ru/employer-logo-original/601766.png'}, 'vacancies_url': 'https://api.hh.ru/vacancies?employer_id=78638', 'trusted': True}, 'published_at': '2019-06-03T11:17:55+0300', 'created_at': '2019-06-03T11:17:55+0300', 'archived': False, 'apply_alternate_url': 'https://hh.ru/applicant/vacancy_response?vacancyId=30264584', 'insider_interview': None, 'url': 'https://api.hh.ru/vacancies/30264584?host=hh.ru', 'alternate_url': 'https://hh.ru/vacancy/30264584', 'relations': [], 'snippet': {'requirement': 'Способности автоматизировать рутинные процессы на <highlighttext>Python</highlighttext>, bash. Отличное знание сети. Возможность рассказать про модель OSI, умение диагностировать и решать сложные...', 'responsibility': 'Поддерживать команды <highlighttext>Python</highlighttext> <highlighttext>разработчиков</highlighttext> в вопросах инфраструктурной оптимизации и сопровождения. Развертывать и поддерживать CI/CD на основе TeamCity и Jenkins. '}, 'contacts': None}
     for language in top_lang_list:
         hh_founded_vacancies_quantity, msk_hh_vacancies = get_vacancies_hh_keywords(language, MOSCOW_REGION, MONTH_PERIOD)
 
-        r = 1
+
         for vacancy in msk_hh_vacancies:
             print(vacancy)
             sheet_msk.cell(row=r, column=1, value=" ".join(language.split()[0:2]))
@@ -132,6 +164,32 @@ def main():
                 sheet_msk.cell(row=r, column=3, value=vacancy['salary']['from'])
                 sheet_msk.cell(row=r, column=4, value=vacancy['salary']['to'])
             sheet_msk.cell(row=r, column=5, value=vacancy['name'])
+
+            r += 1
+
+    wb.save("./test.xlsx")
+
+
+
+    wb = openpyxl.load_workbook(filename="./test.xlsx")
+    sheet_sverdl = wb['vacancies_sverdl']
+
+
+    r = 1
+    # сначала ищем по ключевым словам мск
+# {'id': '30264584', 'premium': False, 'name': 'DevOps инженер', 'department': None, 'has_test': False, 'response_letter_required': False, 'area': {'id': '3', 'name': 'Екатеринбург', 'url': 'https://api.hh.ru/areas/3'}, 'salary': None, 'type': {'id': 'open', 'name': 'Открытая'}, 'address': {'city': 'Екатеринбург', 'street': None, 'building': None, 'description': None, 'lat': 56.838607, 'lng': 60.605514, 'raw': None, 'metro': {'station_name': 'Площадь 1905 года', 'line_name': 'Север-Юг', 'station_id': '48.266', 'line_id': '48', 'lat': 56.837982, 'lng': 60.59734}, 'metro_stations': [{'station_name': 'Площадь 1905 года', 'line_name': 'Север-Юг', 'station_id': '48.266', 'line_id': '48', 'lat': 56.837982, 'lng': 60.59734}], 'id': '800454'}, 'response_url': None, 'sort_point_distance': None, 'employer': {'id': '78638', 'name': 'Тинькофф', 'url': 'https://api.hh.ru/employers/78638', 'alternate_url': 'https://hh.ru/employer/78638', 'logo_urls': {'240': 'https://hhcdn.ru/employer-logo/2848221.png', '90': 'https://hhcdn.ru/employer-logo/2848220.png', 'original': 'https://hhcdn.ru/employer-logo-original/601766.png'}, 'vacancies_url': 'https://api.hh.ru/vacancies?employer_id=78638', 'trusted': True}, 'published_at': '2019-06-03T11:17:55+0300', 'created_at': '2019-06-03T11:17:55+0300', 'archived': False, 'apply_alternate_url': 'https://hh.ru/applicant/vacancy_response?vacancyId=30264584', 'insider_interview': None, 'url': 'https://api.hh.ru/vacancies/30264584?host=hh.ru', 'alternate_url': 'https://hh.ru/vacancy/30264584', 'relations': [], 'snippet': {'requirement': 'Способности автоматизировать рутинные процессы на <highlighttext>Python</highlighttext>, bash. Отличное знание сети. Возможность рассказать про модель OSI, умение диагностировать и решать сложные...', 'responsibility': 'Поддерживать команды <highlighttext>Python</highlighttext> <highlighttext>разработчиков</highlighttext> в вопросах инфраструктурной оптимизации и сопровождения. Развертывать и поддерживать CI/CD на основе TeamCity и Jenkins. '}, 'contacts': None}
+    for language in top_lang_list:
+        hh_founded_vacancies_quantity, svr_hh_vacancies = get_vacancies_hh_keywords(language, SVERDL_REGION, MONTH_PERIOD)
+
+
+        for vacancy in svr_hh_vacancies:
+            print(vacancy)
+            sheet_sverdl.cell(row=r, column=1, value=" ".join(language.split()[0:2]))
+            sheet_sverdl.cell(row=r, column=2, value=language.split()[-1])
+            if vacancy['salary'] is not None:
+                sheet_sverdl.cell(row=r, column=3, value=vacancy['salary']['from'])
+                sheet_sverdl.cell(row=r, column=4, value=vacancy['salary']['to'])
+            sheet_sverdl.cell(row=r, column=5, value=vacancy['name'])
 
             r += 1
 
